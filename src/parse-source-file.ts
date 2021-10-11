@@ -49,6 +49,7 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
         const methodName = child.name ? child.name.escapedText : '';
         klass.methods.push({
           methodName,
+          params: child.parameters.map(param => param.name.escapedText),
           isAsync: hasAsyncModifier(child)
         })
       }

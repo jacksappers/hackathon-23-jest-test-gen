@@ -1,6 +1,6 @@
 <% imports.forEach(function(value) { %>
 <%=value.importText %><% }) %>
-import { <%=namedExportsList %> } from <%=quoteSymbol %><%=path.split('.').slice(0,-1).join('.') %><%=quoteSymbol %>;
+import <%if(defaultExport){ %><%=defaultExport.name %>, <% }%><%if(namedExportsList.length) {%>{ <%=namedExportsList %> }<%} %> from <%=quoteSymbol %><%=path.split('.').slice(0,-1).join('.') %><%=quoteSymbol %>;
 <% imports.forEach(function(value) { %>
 <% if(['.','/'].includes(value.path[1])) {%>
 jest.mock(<%=value.path%>, () => ({}))<% }
@@ -27,7 +27,7 @@ describe(<%=quoteSymbol %><%=name %><%=quoteSymbol %>, () => {
 
   <% klass.methods.forEach(function(value) { %>
    it('should have a method <%=value.methodName %>()', <%if(value.isAsync){%>async<%}%> () => {
-     // <%if(value.isAsync){%>await<%}%> <%=instanceVariableName %>.<%=value.methodName %>()
+     // <%if(value.isAsync){%>await<%}%> <%=instanceVariableName %>.<%=value.methodName %>(<%=value.params %>)
      expect(false).toBeTruthy()
    });
   <% }) %>

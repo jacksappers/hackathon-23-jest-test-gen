@@ -6,7 +6,7 @@ import { readFileSync } from 'fs';
 
 export function generateUnitTest(path: string, sourceCode: string, input: ParsedSourceFile, handlers: DependencyHandler[]) {
   const klass = input.classes[0];
-  if (input.classes.length > 0) {
+  if (input.classes.length > 1) {
     console.warn('Multiple classes detected in source file, will only consider the first class declaration');
   }
   if (!klass) {
@@ -28,10 +28,19 @@ export function generateUnitTest(path: string, sourceCode: string, input: Parsed
   });
 
   const uniqueImports = prepareImports(input.imports, quoteSymbol);
-
+  const namedExportsList = [
+    klass, 
+    ...input.exportFunctions,
+    ...input.exportPojos,
+  ].filter(exp => !exp.isDefaultExport).map( exp => exp.name);
+  const maybeDefaultExport = [...input.exportFunctions, ...input.exportPojos].find(exp => exp.isDefaultExport);
+  if (maybeDefaultExport) {
+    maybeDefaultExport.name = maybeDefaultExport.name || basename(path).replace('.ts', '');
+  }
   return generator({
     name: klass.name,
-    namedExportsList: [klass.name, ...input.exportFunctions.map(exp => exp.name)].join(', '),
+    namedExportsList: namedExportsList.join(', '),
+    defaultExport: maybeDefaultExport,
     path: relativePath,
     quoteSymbol,
     imports: uniqueImports,
