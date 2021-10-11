@@ -12,6 +12,7 @@ export interface ParsedClassDependency {
 export interface ParsedImport {
   path: string;
   names: string[];
+  importText: string;
 }
 
 export interface ParsedSourceFile {

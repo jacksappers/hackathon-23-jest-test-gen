@@ -1,11 +1,11 @@
 {
-  "name": "jasmine-unit-test-generator",
-  "version": "1.2.1",
-  "description": "Generate initial unit test with all class dependencies mocked. Can be extended with custom handlers to cover move advanced cases",
+  "name": "jest-test-gen",
+  "version": "0.0.1",
+  "description": "Generate initial unit test with all class dependencies mocked.",
   "keywords": [
-    "jasmine",
+    "jest",
     "unit test generator",
-    "angular unit test"
+    "mocks"
   ],
   "main": "lib/public-api.js",
   "scripts": {
@@ -15,9 +15,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "ssh://git@github.com:FDIM/jasmine-unit-test-generator.git"
+    "url": "ssh://git@github.com:egm0121/jest-test-gen.git"
   },
-  "author": "FDIM",
+  "author": "egm0121",
   "license": "MIT",
   "devDependencies": {
     "@types/lodash": "^4.14.141",
@@ -28,18 +28,12 @@
     "typescript": "^3.3.4000"
   },
   "bin": {
-    "jasmine-unit-test-generator": "./lib/cli.js"
+    "jest-test-gen": "./lib/cli.js"
   },
   "dependencies": {
     "lodash": "^4.1.*"
   },
   "peerDependencies": {
     "typescript": "^3.3.4000"
-  },
-  "optionalDependencies": {
-    "@angular/common": "^8.2.11",
-    "@angular/core": "^8.2.11",
-    "@angular/router": "^8.2.11",
-    "rxjs": "^6.5.3"
   }
 }

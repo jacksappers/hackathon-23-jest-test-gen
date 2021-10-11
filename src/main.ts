@@ -30,7 +30,7 @@ export function run(params: string[]) {
 
   const path = params[0];
 
-  const specPath = path.substring(0, path.length - 2) + 'spec.ts';
+  const specPath = path.substring(0, path.length - 2) + 'generated.test.js';
   const sourceCode = readFileSync(path).toString();
 
   const sourceFile = ts.createSourceFile(

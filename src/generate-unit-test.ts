@@ -6,49 +6,40 @@ import { readFileSync } from 'fs';
 
 export function generateUnitTest(path: string, sourceCode: string, input: ParsedSourceFile, handlers: DependencyHandler[]) {
   const klass = input.classes[0];
-
+  if (input.classes.length > 0) {
+    console.warn('Multiple classes detected in source file, will only consider the first class declaration');
+  }
   if (!klass) {
     throw new Error(`No classes found in ${path}`);
   }
-
+  console.log('parsedSourceCode', input);
   const templateOptions = getTemplateOptions(klass.name);
 
   const templateText = readFileSync(templateOptions.templatePath).toString();
   const generator = template(templateText);
   const relativePath = './' + basename(path).replace('.ts', '');
-
-  const usedImports = input.imports.reduce((imports, value) => {
-    const matchingDependencies = value.names.filter((name) => {
-      return klass.dependencies.some(dep => !!dep.type && dep.type.replace(/(<.*)/, '') === name || dep.token === name);
-    });
-    if (matchingDependencies.length > 0) {
-      imports.push({
-        path: value.path,
-        names: matchingDependencies
-      });
-    }
-    return imports;
-  }, [] as ParsedImport[]);
-
   const quoteSymbol = determinateUsedQuote(input.imports);
 
   const classOptions = getClassOptions(klass, handlers, {
     sourceCode,
     quoteSymbol,
-    imports: usedImports,
+    imports: input.imports,
     allImports: input.imports
   });
 
-  const uniqueImports = prepareImports(usedImports, quoteSymbol);
+  const uniqueImports = prepareImports(input.imports, quoteSymbol);
 
   return generator({
     name: klass.name,
+    namedExportsList: [klass.name, ...input.exportFunctions.map(exp => exp.name)].join(', '),
     path: relativePath,
     quoteSymbol,
     imports: uniqueImports,
     allImports: input.imports,
+    parsedSource: input,
     ...classOptions,
-    ...templateOptions
+    ...templateOptions,
+    klass,
   });
 }
 
@@ -65,25 +56,7 @@ function getClassOptions(klass: ParsedClass, handlers: DependencyHandler[], opti
     dependencies: [],
     imports: options.imports
   };
-  klass.dependencies.forEach(dep => {
-    const offset = dep.name.indexOf('$') === 0 ? 1 : 0;
-    const variableName = 'fake' + dep.name.charAt(offset).toUpperCase() + dep.name.slice(1 + offset);
-    const injectionToken = dep.token ? dep.token : (dep.type && dep.type.replace(/(<.*)/, '') || 'unknown');
 
-    for (let i = 0; i < handlers.length; i++) {
-      const handler = handlers[i];
-      if (handler.test(dep)) {
-        handler.run(result, dep, {
-          variableName,
-          injectionToken,
-          quoteSymbol: options.quoteSymbol,
-          sourceCode: options.sourceCode,
-          allImports: options.allImports,
-        });
-        return;
-      }
-    }
-  });
   return result;
 }
 
