@@ -1,65 +1,23 @@
 import { run } from '../src/main';
 import { unlinkSync, readFileSync } from 'fs';
 
-const leaveSpecFilesOnDisk = false;
+const leaveSpecFilesOnDisk = true;
 
 describe('integration', () => {
-
-  describe(`login form component test`, () => {
-
+  describe(`single class default export by identifier`, () => {
     createSpec({
-      file: 'spec/fixtures/components/login/login-form.component.ts',
-      spec: 'spec/fixtures/components/login/login-form.component.spec.ts',
-      expected: 'spec/fixtures/components/login/login-form.component.spec.expected.ts'
+      file: 'spec/fixtures/classes/defaultExportIdentifier.js',
+      spec: 'spec/fixtures/classes/defaultExportIdentifier.generated.test.js',
+      expected: 'spec/fixtures/classes/defaultExportIdentifier.expected.test.js'
     });
-
   });
-
-  describe(`home component test`, () => {
-
+  describe(`single class default export of assigned class`, () => {
     createSpec({
-      file: 'spec/fixtures/components/home-page/home-page.component.ts',
-      spec: 'spec/fixtures/components/home-page/home-page.component.spec.ts',
-      expected: 'spec/fixtures/components/home-page/home-page.component.spec.expected.ts'
+      file: 'spec/fixtures/classes/defaultExportAssignment.js',
+      spec: 'spec/fixtures/classes/defaultExportAssignment.generated.test.js',
+      expected: 'spec/fixtures/classes/defaultExportAssignment.expected.test.js'
     });
-
   });
-
-  describe('with dependency handlers', () => {
-
-    describe('login form component test', () => {
-
-      createSpec({
-        file: 'spec/fixtures/components/login/login-form.component.ts',
-        spec: 'spec/fixtures/components/login/login-form.component.spec.ts',
-        expected: 'spec/fixtures/components/login/login-form.component.spec.expected.with-handlers.ts',
-        arguments: ['--handlers', 'spec/fixtures/dependency-handlers']
-      });
-
-    });
-
-  });
-
-  describe('auth service', () => {
-
-    createSpec({
-      file: 'spec/fixtures/auth.service.ts',
-      spec: 'spec/fixtures/auth.service.spec.ts',
-      expected: 'spec/fixtures/auth.service.spec.expected.ts'
-    });
-
-    describe('with double quotes', () => {
-
-      createSpec({
-        file: 'spec/fixtures/auth.service.with-double-quote.ts',
-        spec: 'spec/fixtures/auth.service.with-double-quote.spec.ts',
-        expected: 'spec/fixtures/auth.service.with-double-quote.spec.expected.ts'
-      });
-
-    });
-
-  });
-
 });
 
 function createSpec(input: {

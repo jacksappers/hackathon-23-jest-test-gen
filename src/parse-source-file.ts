@@ -6,7 +6,9 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
     imports: [],
     exportFunctions: [],
     exportPojos: [],
-    classes: []
+    exportClass: undefined,
+    classes: [],
+    functions: [],
   };
   walker(file);
   return result;
@@ -24,6 +26,12 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
         break;
       case ts.SyntaxKind.VariableStatement:
         variableStatementWalker(node as ts.VariableStatement);
+        break;
+      case ts.SyntaxKind.ExportDeclaration:
+        exportDeclarationWalker(node as ts.ExportDeclaration);
+        break;
+      case ts.SyntaxKind.ExportAssignment:
+        exportAssignementWalker(node as ts.ExportAssignment);
         break;
       default:
         ts.forEachChild(node, walker);
@@ -54,7 +62,10 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
         })
       }
     });
-    result.classes.push(klass);
+    result.classes.push(klass)
+    if (hasExportModifier(node)) {
+      result.exportClass = klass;
+    }
   }
 
   function importsWalker(node: ts.ImportDeclaration) {
@@ -76,27 +87,36 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
   }
 
   function functionDeclarationWalker(node: ts.FunctionDeclaration){
+    const parsedFunction = {
+      name: node.name ? node.name.escapedText: '',
+      params: node.parameters.map(param => param.name.escapedText),
+      isAsync: hasAsyncModifier(node),
+      isDefaultExport: hasDefaultModifier(node)
+    };
     if(hasExportModifier(node)){
-      result.exportFunctions.push({
-        name: node.name && node.name.escapedText,
-        params: node.parameters.map(param => param.name.escapedText),
-        isAsync: hasAsyncModifier(node),
-        isDefaultExport: hasDefaultModifier(node)
-      });
+      result.exportFunctions.push(parsedFunction);
+    } else {
+      result.functions.push(parsedFunction);
     }
   }
 
   function variableStatementWalker(node: ts.VariableStatement){
-    if(hasExportModifier(node) && node.declarationList){
+    // check only exported variable statements.
+    if(node.declarationList){
       node.declarationList.forEachChild((child: ts.VariableDeclaration) => {
-        //handle export arrow function declaration
+        //handle arrow function declaration
         if(child.initializer && child.initializer.kind === ts.SyntaxKind.ArrowFunction){
-          result.exportFunctions.push({
+          const parsedFunction = {
             name: child.name.escapedText,
             params: child.initializer.parameters.map(param => param.name.escapedText),
             isAsync: hasAsyncModifier(child.initializer),
             isDefaultExport: hasDefaultModifier(child.initializer),
-          });
+          };
+          if(hasExportModifier(node)) {
+            result.exportFunctions.push(parsedFunction);
+          } else {
+            result.functions.push(parsedFunction);
+          }
         }
         //handle exported pojo with callable methods
         if(child.initializer && child.initializer.kind === ts.SyntaxKind.ObjectLiteralExpression){
@@ -117,7 +137,58 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
           });
           result.exportPojos.push(parsedPojo);
         }
+        if(child.initializer && child.initializer.kind === ts.SyntaxKind.ClassExpression){
+          const klassExp: ParsedClass = {
+            name: child.name && child.name.escapedText as any,
+            methods: [],
+            isDefaultExport: false,
+          };
+          ts.forEachChild(child.initializer, (child) => {
+            if (child.kind === ts.SyntaxKind.MethodDeclaration){
+              const methodName = child.name ? child.name.escapedText : '';
+              klassExp.methods.push({
+                methodName,
+                params: child.parameters.map(param => param.name.escapedText),
+                isAsync: hasAsyncModifier(child)
+              })
+            }
+          });
+          result.classes.push(klassExp);
+          result.exportClass = klassExp;
+        }
       })
+    }
+  }
+
+  function exportDeclarationWalker(node: ts.ExportDeclaration){
+    node.exportClause && node.exportClause.elements.forEach(identifier => {
+      const idName = identifier.name.escapedText;
+      const foundClassByIdentifier = result.classes.find(klass => klass.name === idName);
+      if(foundClassByIdentifier) {
+        result.exportClass = foundClassByIdentifier;
+      }
+      const foundFunctionByIdentifier = result.functions.find(func => func.name === idName);
+      if(foundFunctionByIdentifier){
+        result.exportFunctions.push(foundFunctionByIdentifier);
+      }
+    });
+  }
+
+  function exportAssignementWalker(node: ts.ExportAssignment){
+    const idName = node.expression.escapedText;
+    const foundClassByIdentifier = result.classes.find(klass => klass.name === idName);
+    if(foundClassByIdentifier) {
+      result.exportClass = {
+       ...foundClassByIdentifier,
+       isDefaultExport: true,
+      };
+    }
+    const foundFunctionByIdentifier = result.functions.find(func => func.name === idName);
+    if(foundFunctionByIdentifier){
+      result.exportFunctions.push({
+        ...foundFunctionByIdentifier,
+        isDefaultExport: true,
+      });
     }
   }
 }

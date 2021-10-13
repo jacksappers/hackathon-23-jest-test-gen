@@ -11,7 +11,7 @@
   "scripts": {
     "build:dev": "tsc --watch",
     "build": "tsc",
-    "test": "jasmine --require=ts-node/register"
+    "test": "jasmine --require=ts-node/register/transpile-only"
   },
   "repository": {
     "type": "git",

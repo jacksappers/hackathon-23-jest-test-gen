@@ -1,5 +1,7 @@
-import template = require('lodash/template');
-import uniq = require('lodash/uniq');
+const template = require('lodash/template');
+const uniq = require('lodash/uniq');
+const trimEnd = require('lodash/trimEnd');
+
 import { ParsedSourceFile, ParsedClass, ClassOptions, TemplateOptions, DependencyHandler, ParsedImport } from './model';
 import { basename } from 'path';
 import { readFileSync } from 'fs';
@@ -9,11 +11,12 @@ export function generateUnitTest(path: string, sourceCode: string, input: Parsed
   if (input.classes.length > 1) {
     console.warn('Multiple classes detected in source file, will only consider the first class declaration');
   }
-  if (!klass) {
-    throw new Error(`No classes found in ${path}`);
-  }
   console.log('parsedSourceCode', input);
-  const templateOptions = getTemplateOptions(klass.name);
+  const templateOptions = {
+    instanceVariableName: 'instance',
+    templateType: 'Instance',
+    templatePath: __dirname + '/../templates/class.ts.tpl'
+  };
 
   const templateText = readFileSync(templateOptions.templatePath).toString();
   const generator = template(templateText);
@@ -28,17 +31,18 @@ export function generateUnitTest(path: string, sourceCode: string, input: Parsed
   });
 
   const uniqueImports = prepareImports(input.imports, quoteSymbol);
-  const namedExportsList = [
-    klass, 
+  let namedExportsList = [
+    input.exportClass,
     ...input.exportFunctions,
     ...input.exportPojos,
-  ].filter(exp => !exp.isDefaultExport).map( exp => exp.name);
-  const maybeDefaultExport = [...input.exportFunctions, ...input.exportPojos].find(exp => exp.isDefaultExport);
+  ];
+  
+  namedExportsList = namedExportsList.filter(exp => exp && !exp.isDefaultExport).map( exp => exp.name);
+  const maybeDefaultExport = [input.exportClass,...input.exportFunctions, ...input.exportPojos].find(exp => exp && exp.isDefaultExport);
   if (maybeDefaultExport) {
-    maybeDefaultExport.name = maybeDefaultExport.name || basename(path).replace('.ts', '');
+    maybeDefaultExport.name = maybeDefaultExport.name || basename(path).replace(/\.\w+/, '');
   }
-  return generator({
-    name: klass.name,
+  return trimEnd(generator({
     namedExportsList: namedExportsList.join(', '),
     defaultExport: maybeDefaultExport,
     path: relativePath,
@@ -48,8 +52,7 @@ export function generateUnitTest(path: string, sourceCode: string, input: Parsed
     parsedSource: input,
     ...classOptions,
     ...templateOptions,
-    klass,
-  });
+  }), '\r\n');
 }
 
 
@@ -101,39 +104,4 @@ function determinateUsedQuote(imports: ParsedImport[]): string {
   }
 
   return '\'';
-}
-
-function getTemplateOptions(name: string): TemplateOptions {
-
-  if (name.indexOf('Component') !== -1) {
-    return {
-      instanceVariableName: 'component',
-      templateType: 'Component',
-      templatePath: __dirname + '/../templates/component.ts.tpl'
-    };
-  } else if (name.indexOf('Directive') !== -1) {
-    return {
-      instanceVariableName: 'directive',
-      templateType: 'Directive',
-      templatePath: __dirname + '/../templates/component.ts.tpl'
-    };
-  } else if (name.indexOf('Service') !== -1) {
-    return {
-      instanceVariableName: 'service',
-      templateType: 'Service',
-      templatePath: __dirname + '/../templates/class.ts.tpl'
-    };
-  } else if (name.indexOf('Pipe') !== -1) {
-    return {
-      instanceVariableName: 'pipe',
-      templateType: 'Pipe',
-      templatePath: __dirname + '/../templates/class.ts.tpl'
-    };
-  } else {
-    return {
-      instanceVariableName: 'instance',
-      templateType: 'Instance',
-      templatePath: __dirname + '/../templates/class.ts.tpl'
-    };
-  }
 }
