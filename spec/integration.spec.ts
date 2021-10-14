@@ -18,6 +18,27 @@ describe('integration', () => {
       expected: 'spec/fixtures/classes/defaultExportAssignment.expected.test.js'
     });
   });
+  describe(`single class named export of assigned class definition`, () => {
+    createSpec({
+      file: 'spec/fixtures/classes/namedExportClassDefinition.js',
+      spec: 'spec/fixtures/classes/namedExportClassDefinition.generated.test.js',
+      expected: 'spec/fixtures/classes/namedExportClassDefinition.expected.test.js'
+    });
+  });
+  describe(`single class named export of class identifier`, () => {
+    createSpec({
+      file: 'spec/fixtures/classes/namedExportIdentifier.js',
+      spec: 'spec/fixtures/classes/namedExportIdentifier.generated.test.js',
+      expected: 'spec/fixtures/classes/namedExportIdentifier.expected.test.js'
+    });
+  });
+  describe(`single class named export of variable declaration with class assignement`, () => {
+    createSpec({
+      file: 'spec/fixtures/classes/namedExportVariableDeclaration.js',
+      spec: 'spec/fixtures/classes/namedExportVariableDeclaration.generated.test.js',
+      expected: 'spec/fixtures/classes/namedExportVariableDeclaration.expected.test.js'
+    });
+  });
 });
 
 function createSpec(input: {

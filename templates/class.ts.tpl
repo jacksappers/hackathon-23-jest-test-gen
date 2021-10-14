@@ -20,7 +20,7 @@ describe('<%=parsedSource.exportClass.name %>', () => {
 
   <% parsedSource.exportClass.methods.forEach(function(value) { %>
   it('should have a method <%=value.methodName %>()', <%if(value.isAsync){%>async<%}%> () => {
-    // <%if(value.isAsync){%>await<%}%> <%=instanceVariableName %>.<%=value.methodName %>(<%=value.params %>)
+    //<%if(value.isAsync){%>await <%}%><%=instanceVariableName %>.<%=value.methodName %>(<%=value.params %>)
     expect(false).toBeTruthy()
   });
   <% }) %>
@@ -29,7 +29,7 @@ describe('<%=parsedSource.exportClass.name %>', () => {
 <% parsedSource.exportFunctions.forEach(function(value) { %>
 describe('<%=value.name %>', () => {
   it('should expose a function', <%if(value.isAsync){%>async<%}%> () => {
-    //const retValue = <%if(value.isAsync){%>await<%}%> <%=value.name %>(<%=value.params %>)
+    //const retValue = <%if(value.isAsync){%>await <%}%><%=value.name %>(<%=value.params %>)
     expect(false).toBeTruthy()
   });
 });
@@ -38,7 +38,7 @@ describe('<%=value.name %>', () => {
 describe('<%=value.name %>', () => {
   <% value.methods.forEach(function(method) { %>
   it('should expose a method <%=method.methodName %>()', <%if(value.isAsync){%>async<%}%> () => {
-    //const retValue = <%if(value.isAsync){%>await<%}%> <%=value.name %>.<%=method.methodName %>(<%=method.params %>)
+    //const retValue = <%if(value.isAsync){%>await <%}%><%=value.name %>.<%=method.methodName %>(<%=method.params %>)
     expect(false).toBeTruthy()
   });
   <% })%>

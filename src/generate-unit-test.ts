@@ -2,16 +2,18 @@ const template = require('lodash/template');
 const uniq = require('lodash/uniq');
 const trimEnd = require('lodash/trimEnd');
 
-import { ParsedSourceFile, ParsedClass, ClassOptions, TemplateOptions, DependencyHandler, ParsedImport } from './model';
+import { ParsedSourceFile, ParsedClass, ClassOptions, DependencyHandler, ParsedImport } from './model';
 import { basename } from 'path';
 import { readFileSync } from 'fs';
+import debugFactory from 'debug';
 
+const debug = debugFactory('jest-test-gen/generate-unit-test');
 export function generateUnitTest(path: string, sourceCode: string, input: ParsedSourceFile, handlers: DependencyHandler[]) {
   const klass = input.classes[0];
   if (input.classes.length > 1) {
     console.warn('Multiple classes detected in source file, will only consider the first class declaration');
   }
-  console.log('parsedSourceCode', input);
+  debug('parsedSourceCode', input);
   const templateOptions = {
     instanceVariableName: 'instance',
     templateType: 'Instance',

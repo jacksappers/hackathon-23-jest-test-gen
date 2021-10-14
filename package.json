@@ -1,11 +1,16 @@
 {
   "name": "jest-test-gen",
-  "version": "0.0.1",
-  "description": "Generate initial unit test with all class dependencies mocked.",
+  "version": "0.0.4",
+  "description": "Generator of jest unit test with all imports mocked and tests stub for every class and function exported",
   "keywords": [
     "jest",
     "unit test generator",
-    "mocks"
+    "mocks",
+    "testing",
+    "jest generator",
+    "es6 classes",
+    "functions",
+    "export parsing"
   ],
   "main": "lib/public-api.js",
   "scripts": {
@@ -20,18 +25,20 @@
   "author": "egm0121",
   "license": "MIT",
   "devDependencies": {
+    "@types/debug": "^4.1.7",
+    "@types/jasmine": "^2.8.7",
     "@types/lodash": "^4.14.141",
     "@types/node": "^11.11.6",
-    "@types/jasmine": "^2.8.7",
     "jasmine": "^3.5.0",
-    "ts-node": "^8.0.3",
-    "typescript": "^3.3.4000"
+    "ts-node": "^8.0.3"
   },
   "bin": {
     "jest-test-gen": "./lib/cli.js"
   },
   "dependencies": {
-    "lodash": "^4.1.*"
+    "lodash": "^4.1.*",
+    "typescript": "^3.3.4000",
+    "debug": "4.3.2"
   },
   "peerDependencies": {
     "typescript": "^3.3.4000"

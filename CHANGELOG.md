@@ -1,10 +1,18 @@
 # Changelog
 
-## v1.2.1
+## v0.0.4
 
-- #4: fix for Inject token value not being used in component test template
-- #2: fix for createSpyObj usage when no methods were used in a dependency
+- Fixes to output format
+- added debug for logging in dev
 
-## v1.2.0
+## v0.0.3
+
+list typescript as dependency
+
+## v0.0.2
+
+Update docs
+
+## v0.0.1
 
 Initial release

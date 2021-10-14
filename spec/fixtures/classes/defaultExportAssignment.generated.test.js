@@ -28,12 +28,12 @@ describe('defaultExportAssignment', () => {
 
   
   it('should have a method hiThere()',  () => {
-    //  instance.hiThere()
+    //instance.hiThere()
     expect(false).toBeTruthy()
   });
   
   it('should have a method myDemoMethod()',  () => {
-    //  instance.myDemoMethod()
+    //instance.myDemoMethod()
     expect(false).toBeTruthy()
   });
   

@@ -3,7 +3,7 @@ import moduleOne from 'moduleOne';
 import moduleTwo from 'moduleTwo';
 import myDefaultExport, { myNamedExport } from 'moduleThree/deep/file';
 import helpers from './local/helpers';
-import MyDemoClass  from './defaultExportIdentifier';
+import { MyDemoClass, myTestHelper } from './namedExportClassDefinition';
 
 jest.mock('moduleOne')
 
@@ -28,13 +28,31 @@ describe('MyDemoClass', () => {
 
   
   it('should have a method hiThere()',  () => {
-    //instance.hiThere()
+    //instance.hiThere(name,surname)
     expect(false).toBeTruthy()
   });
   
-  it('should have a method myDemoMethod()',  () => {
-    //instance.myDemoMethod()
+  it('should have a method myDemoMethodOne()',  () => {
+    //instance.myDemoMethodOne(demoParam)
     expect(false).toBeTruthy()
   });
   
+  it('should have a method myDemoMethodTwo()',  () => {
+    //instance.myDemoMethodTwo(demoParam)
+    expect(false).toBeTruthy()
+  });
+  
+  it('should have a method myDemoMethodThree()',  () => {
+    //instance.myDemoMethodThree(demoParam)
+    expect(false).toBeTruthy()
+  });
+  
+});
+
+
+describe('myTestHelper', () => {
+  it('should expose a function',  () => {
+    //const retValue = myTestHelper(arg1,arg2)
+    expect(false).toBeTruthy()
+  });
 });

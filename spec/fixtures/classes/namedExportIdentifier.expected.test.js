@@ -3,7 +3,7 @@ import moduleOne from 'moduleOne';
 import moduleTwo from 'moduleTwo';
 import myDefaultExport, { myNamedExport } from 'moduleThree/deep/file';
 import helpers from './local/helpers';
-import MyDemoClass  from './defaultExportIdentifier';
+import { MyDemoClass } from './namedExportIdentifier';
 
 jest.mock('moduleOne')
 
