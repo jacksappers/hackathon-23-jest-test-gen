@@ -9,6 +9,7 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
     exportClass: undefined,
     classes: [],
     functions: [],
+    pojos: [],
   };
   walker(file);
   return result;
@@ -135,7 +136,11 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
               })
             }
           });
-          result.exportPojos.push(parsedPojo);
+          if(hasExportModifier(node)) {
+            result.exportPojos.push(parsedPojo);
+          } else {
+            result.pojos.push(parsedPojo);
+          }
         }
         if(child.initializer && child.initializer.kind === ts.SyntaxKind.ClassExpression){
           const klassExp: ParsedClass = {
@@ -171,6 +176,10 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
       if(foundFunctionByIdentifier){
         result.exportFunctions.push(foundFunctionByIdentifier);
       }
+      const foundPojoByIdentifier = result.pojos.find(pojo => pojo.name === idName);
+      if(foundPojoByIdentifier){
+        result.exportPojos.push(foundPojoByIdentifier);
+      }
     });
   }
 
@@ -190,5 +199,12 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
         isDefaultExport: true,
       });
     }
+    const foundPojoByIdentifier = result.pojos.find(pojo => pojo.name === idName);
+      if(foundPojoByIdentifier){
+        result.exportPojos.push({
+          ...foundPojoByIdentifier,
+          isDefaultExport: true,
+        })
+      }
   }
 }
