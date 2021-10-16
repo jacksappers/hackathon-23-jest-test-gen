@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync } from 'fs';
+import * as path from 'path';
 import * as ts from 'typescript';
 import { parseSourceFile } from './parse-source-file';
 import { generateUnitTest } from './generate-unit-test';
@@ -15,20 +16,20 @@ export function run(params: string[]) {
     params = params.slice(2);
   }
 
-  const path = params[0];
+  const inputPath = params[0];
+  const inputFilenameNoExt = path.basename(inputPath, path.extname(inputPath));
+  const specFileName = path.join(path.dirname(inputPath),`${inputFilenameNoExt}.generated.test.js`);
 
-  const specPath = path.substring(0, path.length - 2) + 'generated.test.js';
-  const sourceCode = readFileSync(path).toString();
+  const sourceCode = readFileSync(inputPath).toString();
 
   const sourceFile = ts.createSourceFile(
-    path,
+    inputPath,
     sourceCode,
     ts.ScriptTarget.Latest,
-        /*setParentNodes */ true
+    true, /*setParentNodes */
   );
-
   const input = parseSourceFile(sourceFile);
-  const output = generateUnitTest(path, sourceCode, input);
+  const output = generateUnitTest(inputPath, sourceCode, input);
 
-  writeFileSync(specPath, output);
+  writeFileSync(specFileName, output);
 }

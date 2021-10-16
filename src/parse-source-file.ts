@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { ParsedSourceFile, ParsedClass } from './model';
+import { ParsedSourceFile, ParsedClass, ParsedPojo } from './model';
 
 export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
   const result: ParsedSourceFile = {
@@ -38,13 +38,13 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
         ts.forEachChild(node, walker);
     }
   }
-  function hasAsyncModifier(node: ts.ClassDeclaration | ts.FunctionDeclaration) {
+  function hasAsyncModifier(node: ts.ClassDeclaration | ts.FunctionDeclaration |  ts.FunctionExpression | ts.MethodDeclaration) {
     return node.modifiers ? node.modifiers.some(mod => mod.kind === ts.SyntaxKind.AsyncKeyword): false;
   }
   function hasExportModifier(node: ts.ClassDeclaration | ts.FunctionDeclaration | ts.VariableStatement) {
     return node.modifiers ? node.modifiers.some(mod => mod.kind === ts.SyntaxKind.ExportKeyword): false;
   }
-  function hasDefaultModifier(node: ts.ClassDeclaration | ts.FunctionDeclaration | ts.VariableStatement) {
+  function hasDefaultModifier(node: ts.ClassDeclaration | ts.FunctionDeclaration | ts.FunctionExpression | ts.VariableStatement) {
     return node.modifiers ? node.modifiers.some(mode => mode.kind === ts.SyntaxKind.DefaultKeyword): false;
   }
   function classWalker(node: ts.ClassDeclaration) {
@@ -55,11 +55,12 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
     };
     ts.forEachChild(node, (child) => {
       if (child.kind === ts.SyntaxKind.MethodDeclaration){
-        const methodName = child.name ? child.name.escapedText : '';
+        const methodChild = child as ts.MethodDeclaration;
+        const methodName = methodChild.name ? (methodChild.name as ts.Identifier).escapedText : '';
         klass.methods.push({
           methodName,
-          params: child.parameters.map(param => param.name.escapedText),
-          isAsync: hasAsyncModifier(child)
+          params: methodChild.parameters.map(param => (param.name as ts.Identifier).escapedText),
+          isAsync: hasAsyncModifier(methodChild)
         })
       }
     });
@@ -90,7 +91,7 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
   function functionDeclarationWalker(node: ts.FunctionDeclaration){
     const parsedFunction = {
       name: node.name ? node.name.escapedText: '',
-      params: node.parameters.map(param => param.name.escapedText),
+      params: node.parameters.map(param => (param.name as ts.Identifier).escapedText),
       isAsync: hasAsyncModifier(node),
       isDefaultExport: hasDefaultModifier(node)
     };
@@ -104,14 +105,15 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
   function variableStatementWalker(node: ts.VariableStatement){
     // check only exported variable statements.
     if(node.declarationList){
-      node.declarationList.forEachChild((child: ts.VariableDeclaration) => {
+      node.declarationList.forEachChild((child) => {
         //handle arrow function declaration
-        if(child.initializer && child.initializer.kind === ts.SyntaxKind.ArrowFunction){
+        const varChild = child as ts.VariableDeclaration;
+        if(varChild.initializer && varChild.initializer.kind === ts.SyntaxKind.ArrowFunction){
           const parsedFunction = {
-            name: child.name.escapedText,
-            params: child.initializer.parameters.map(param => param.name.escapedText),
-            isAsync: hasAsyncModifier(child.initializer),
-            isDefaultExport: hasDefaultModifier(child.initializer),
+            name: (varChild.name as ts.Identifier).escapedText,
+            params: (varChild.initializer as ts.FunctionExpression).parameters.map(param => (param.name as ts.Identifier).escapedText),
+            isAsync: hasAsyncModifier(varChild.initializer as ts.FunctionExpression),
+            isDefaultExport: hasDefaultModifier(varChild.initializer as ts.FunctionExpression),
           };
           if(hasExportModifier(node)) {
             result.exportFunctions.push(parsedFunction);
@@ -120,19 +122,20 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
           }
         }
         //handle exported pojo with callable methods
-        if(child.initializer && child.initializer.kind === ts.SyntaxKind.ObjectLiteralExpression){
-          const parsedPojo = {
-            name: child.name && child.name.escapedText,
-            isDefaultExport: hasDefaultModifier(child.initializer),
+        if(varChild.initializer && varChild.initializer.kind === ts.SyntaxKind.ObjectLiteralExpression){
+          const parsedPojo: ParsedPojo = {
+            name: varChild.name && (varChild.name as ts.Identifier).escapedText,
+            isDefaultExport: hasDefaultModifier(varChild.initializer as ts.FunctionExpression),
             methods: [],
-          } 
-          child.initializer.properties.forEach(propNode => {
+          };
+          (varChild.initializer as ts.ObjectLiteralExpression).properties.forEach((propNode: ts.Node) => {
             if (propNode.kind === ts.SyntaxKind.MethodDeclaration){
-              const methodName = propNode.name ? propNode.name.escapedText : '';
+              const methodNode = propNode as ts.MethodDeclaration;
+              const methodName = methodNode.name ? (methodNode.name as ts.Identifier).escapedText : '';
               parsedPojo.methods.push({
                 methodName,
-                params: propNode.parameters.map(param => param.name.escapedText),
-                isAsync: hasAsyncModifier(propNode)
+                params: methodNode.parameters.map(param => (param.name as ts.Identifier).escapedText),
+                isAsync: hasAsyncModifier(methodNode)
               })
             }
           });
@@ -142,19 +145,20 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
             result.pojos.push(parsedPojo);
           }
         }
-        if(child.initializer && child.initializer.kind === ts.SyntaxKind.ClassExpression){
+        if(varChild.initializer && varChild.initializer.kind === ts.SyntaxKind.ClassExpression){
           const klassExp: ParsedClass = {
-            name: child.name && child.name.escapedText as any,
+            name: varChild.name && (varChild.name as ts.Identifier).escapedText,
             methods: [],
             isDefaultExport: false,
           };
-          ts.forEachChild(child.initializer, (child) => {
+          ts.forEachChild(varChild.initializer, (child) => {
+            const methodChild = child as ts.MethodDeclaration;
             if (child.kind === ts.SyntaxKind.MethodDeclaration){
-              const methodName = child.name ? child.name.escapedText : '';
+              const methodName = methodChild.name ? (methodChild.name as ts.Identifier).escapedText : '';
               klassExp.methods.push({
                 methodName,
-                params: child.parameters.map(param => param.name.escapedText),
-                isAsync: hasAsyncModifier(child)
+                params: (child as ts.MethodDeclaration).parameters.map(param => (param.name as ts.Identifier).escapedText),
+                isAsync: hasAsyncModifier(child as ts.MethodDeclaration)
               })
             }
           });
@@ -166,7 +170,7 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
   }
 
   function exportDeclarationWalker(node: ts.ExportDeclaration){
-    node.exportClause && node.exportClause.elements.forEach(identifier => {
+    node.exportClause && (node.exportClause as ts.NamedExports).elements.forEach(identifier => {
       const idName = identifier.name.escapedText;
       const foundClassByIdentifier = result.classes.find(klass => klass.name === idName);
       if(foundClassByIdentifier) {
@@ -184,7 +188,7 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
   }
 
   function exportAssignementWalker(node: ts.ExportAssignment){
-    const idName = node.expression.escapedText;
+    const idName = (node.expression as ts.Identifier).escapedText;
     const foundClassByIdentifier = result.classes.find(klass => klass.name === idName);
     if(foundClassByIdentifier) {
       result.exportClass = {

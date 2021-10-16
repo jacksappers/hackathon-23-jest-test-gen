@@ -1,24 +1,25 @@
+import * as ts from 'typescript';
 
 export interface ParsedClass {
-  name: string;
+  name: ts.__String | string;
   methods: ParsedMethod[];
   isDefaultExport: boolean;
 }
 
 export interface ParsedMethod {
-  methodName: string;
+  methodName: ts.__String | string;
   isAsync: boolean;
-  params: string[];
+  params: ts.__String[];
 }
 
 export interface ParsedFunction {
-  name?: string;
+  name: ts.__String| string;
   isAsync: boolean;
   isDefaultExport: boolean;
 }
 
 export interface ParsedPojo {
-  name: string;
+  name:  ts.__String| string;
   methods: ParsedMethod[];
   isDefaultExport: boolean;
 }
