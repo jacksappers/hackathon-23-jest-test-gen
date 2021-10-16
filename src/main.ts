@@ -1,9 +1,7 @@
-import { readFileSync, writeFileSync, readdirSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import * as ts from 'typescript';
 import { parseSourceFile } from './parse-source-file';
 import { generateUnitTest } from './generate-unit-test';
-import defaultDependencyHandler from './default-dependency-handler';
-import { DependencyHandler } from './model';
 
 export function run(params: string[]) {
   if (!params.length) {
@@ -16,17 +14,6 @@ export function run(params: string[]) {
     require(params[1]);
     params = params.slice(2);
   }
-
-  const handlers: DependencyHandler[] = [];
-  if (params.length > 1 && params[0].indexOf('--handlers') === 0) {
-    const files = readdirSync(params[1]);
-    files.forEach((file) => {
-      const value = require(process.cwd() + '/' + params[1] + '/' + file);
-      handlers.push(value.default || value);
-    });
-    params = params.slice(2);
-  }
-  handlers.push(defaultDependencyHandler);
 
   const path = params[0];
 
@@ -41,7 +28,7 @@ export function run(params: string[]) {
   );
 
   const input = parseSourceFile(sourceFile);
-  const output = generateUnitTest(path, sourceCode, input, handlers);
+  const output = generateUnitTest(path, sourceCode, input);
 
   writeFileSync(specPath, output);
 }

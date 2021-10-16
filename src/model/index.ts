@@ -1,7 +1,26 @@
 
 export interface ParsedClass {
   name: string;
-  dependencies: ParsedClassDependency[];
+  methods: ParsedMethod[];
+  isDefaultExport: boolean;
+}
+
+export interface ParsedMethod {
+  methodName: string;
+  isAsync: boolean;
+  params: string[];
+}
+
+export interface ParsedFunction {
+  name?: string;
+  isAsync: boolean;
+  isDefaultExport: boolean;
+}
+
+export interface ParsedPojo {
+  name: string;
+  methods: ParsedMethod[];
+  isDefaultExport: boolean;
 }
 
 export interface ParsedClassDependency {
@@ -17,7 +36,12 @@ export interface ParsedImport {
 
 export interface ParsedSourceFile {
   imports: ParsedImport[];
+  exportFunctions: ParsedFunction[],
+  exportPojos: ParsedPojo[],
+  exportClass?: ParsedClass,
   classes: ParsedClass[];
+  functions: ParsedFunction[],
+  pojos: ParsedPojo[],
 }
 
 export interface ClassOptions {
