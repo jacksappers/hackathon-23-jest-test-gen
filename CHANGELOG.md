@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.6
+
+- more output format tweaks
+
+## v0.0.5
+
+- enhancements to output format
+
 ## v0.0.4
 
 - Fixes to output format
