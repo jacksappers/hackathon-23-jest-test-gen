@@ -30,6 +30,5 @@ export function run(params: string[]) {
   );
   const input = parseSourceFile(sourceFile);
   const output = generateUnitTest(inputPath, sourceCode, input);
-
   writeFileSync(specFileName, output);
 }

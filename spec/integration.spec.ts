@@ -88,6 +88,48 @@ describe('integration', () => {
       expected: 'spec/fixtures/pojos/namedExportIdentifier.expected.test.js'
     });
   });
+  describe(`component class based`, () => {
+    createSpec({
+      file: 'spec/fixtures/components/classComponent.js',
+      spec: 'spec/fixtures/components/classComponent.generated.test.js',
+      expected: 'spec/fixtures/components/classComponent.expected.test.js'
+    });
+  });
+  describe(`component class based - default export`, () => {
+    createSpec({
+      file: 'spec/fixtures/components/defaultClassComponent.js',
+      spec: 'spec/fixtures/components/defaultClassComponent.generated.test.js',
+      expected: 'spec/fixtures/components/defaultClassComponent.expected.test.js'
+    });
+  });
+  describe(`component functional - default export`, () => {
+    createSpec({
+      file: 'spec/fixtures/components/functionalDefaultExportComponent.js',
+      spec: 'spec/fixtures/components/functionalDefaultExportComponent.generated.test.js',
+      expected: 'spec/fixtures/components/functionalDefaultExportComponent.expected.test.js'
+    });
+  });
+  describe(`component functional - named export`, () => {
+    createSpec({
+      file: 'spec/fixtures/components/functionalNamedComponent.js',
+      spec: 'spec/fixtures/components/functionalNamedComponent.generated.test.js',
+      expected: 'spec/fixtures/components/functionalNamedComponent.expected.test.js'
+    });
+  });
+  describe(`components multiple- named export`, () => {
+    createSpec({
+      file: 'spec/fixtures/components/multipleComponent.js',
+      spec: 'spec/fixtures/components/multipleComponent.generated.test.js',
+      expected: 'spec/fixtures/components/multipleComponent.expected.test.js'
+    });
+  });
+  describe(`component functional - anonymous default export`, () => {
+    createSpec({
+      file: 'spec/fixtures/components/unnamedDefaultComponent.js',
+      spec: 'spec/fixtures/components/unnamedDefaultComponent.generated.test.js',
+      expected: 'spec/fixtures/components/unnamedDefaultComponent.expected.test.js'
+    });
+  });
 });
 
 function createSpec(input: {
@@ -97,6 +139,7 @@ function createSpec(input: {
   arguments?: string[]
 }) {
   beforeAll(() => {
+    //run the generator on the input file
     run([...(input.arguments || []), input.file]);
   });
 

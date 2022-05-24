@@ -1,5 +1,16 @@
 import * as ts from 'typescript';
 
+export interface ParsedReactProp {
+  name: ts.__String | string,
+  type: ts.__String | string,
+  isOptional: boolean,
+}
+export interface ParsedReactComponent {
+  name: ts.__String | string;
+  isFunctional: boolean;
+  props?: ParsedReactProp[];
+  isDefaultExport: boolean;
+}
 export interface ParsedClass {
   name: ts.__String | string;
   methods: ParsedMethod[];
@@ -40,6 +51,8 @@ export interface ParsedSourceFile {
   exportFunctions: ParsedFunction[],
   exportPojos: ParsedPojo[],
   exportClass?: ParsedClass,
+  exportComponents: ParsedReactComponent[],
+  components: ParsedReactComponent[],
   classes: ParsedClass[];
   functions: ParsedFunction[],
   pojos: ParsedPojo[],
@@ -70,3 +83,4 @@ export interface DependencyHandler {
 
   test(dep: ParsedClassDependency): boolean;
 };
+export type ParsedSourceObject = ParsedClass | ParsedFunction | ParsedPojo | ParsedReactComponent;
