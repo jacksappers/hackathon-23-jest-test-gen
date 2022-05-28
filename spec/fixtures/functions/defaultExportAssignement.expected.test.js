@@ -2,7 +2,7 @@ import moduleOne from 'moduleOne';
 import moduleTwo from 'moduleTwo';
 import myDefaultExport, { myNamedExport } from 'moduleThree/deep/file';
 import helpers from './local/helpers';
-import defaultExportAssignement  from './defaultExportAssignement';
+import defaultExportAssignement from './defaultExportAssignement';
 
 jest.mock('moduleOne');
 jest.mock('moduleTwo');

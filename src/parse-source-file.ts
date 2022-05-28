@@ -1,12 +1,22 @@
 import * as ts from 'typescript';
-import { ParsedSourceFile, ParsedClass, ParsedPojo } from './model';
+import { ParsedSourceFile, ParsedClass, ParsedPojo, ParsedReactComponent, ParsedReactProp } from './model';
+import debugFactory from 'debug';
 
+const debug = debugFactory('jest-test-gen/parse-source-file');
+const isNodeJSX = (node: ts.Node) => [
+  ts.SyntaxKind.JsxElement, 
+  ts.SyntaxKind.JsxFragment, 
+  ts.SyntaxKind.JsxExpression, 
+  ts.SyntaxKind.JsxSelfClosingElement
+].includes(node.kind);
 export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
   const result: ParsedSourceFile = {
     imports: [],
     exportFunctions: [],
     exportPojos: [],
     exportClass: undefined,
+    exportComponents: [],
+    components: [],
     classes: [],
     functions: [],
     pojos: [],
@@ -17,22 +27,32 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
   function walker(node: ts.Node) {
     switch (node.kind) {
       case ts.SyntaxKind.ImportDeclaration:
+        debug('walker found import declaration');
         importsWalker(node as ts.ImportDeclaration);
         break;
       case ts.SyntaxKind.ClassDeclaration:
+        debug('walker found class declaration');
         classWalker(node as ts.ClassDeclaration);
         break;
       case ts.SyntaxKind.FunctionDeclaration:
+        debug('walker found function declaration');
         functionDeclarationWalker(node as ts.FunctionDeclaration);
         break;
       case ts.SyntaxKind.VariableStatement:
+        debug('walker found variable statement');
         variableStatementWalker(node as ts.VariableStatement);
         break;
       case ts.SyntaxKind.ExportDeclaration:
+        debug('walker found export declaration');
         exportDeclarationWalker(node as ts.ExportDeclaration);
         break;
       case ts.SyntaxKind.ExportAssignment:
+        debug('walker found export assignment');
         exportAssignementWalker(node as ts.ExportAssignment);
+        break;
+      case ts.SyntaxKind.ExpressionStatement:
+        debug('walker found expression statement');
+        expressionStatementWalker(node as ts.ExpressionStatement);
         break;
       default:
         ts.forEachChild(node, walker);
@@ -47,12 +67,52 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
   function hasDefaultModifier(node: ts.ClassDeclaration | ts.FunctionDeclaration | ts.FunctionExpression | ts.VariableStatement) {
     return node.modifiers ? node.modifiers.some(mode => mode.kind === ts.SyntaxKind.DefaultKeyword): false;
   }
+  function hasReactInheritance(node: ts.ClassDeclaration) {
+    let hasReactTypeExpression = (type: ts.ExpressionWithTypeArguments) => {
+      const outerExpression = (type.expression as ts.PropertyAccessExpression)
+      const innerExpression = outerExpression.expression;
+      const expressionName = outerExpression.name.escapedText;
+      return (innerExpression as ts.Identifier).escapedText  === 'React' &&
+        ['PureComponent','Component'].includes(expressionName as string);
+    }
+    if (!node.heritageClauses) {
+      return false;
+    }
+    return node.heritageClauses.some(clause => clause.types.some(hasReactTypeExpression));
+  }
+  
+  function hasJSXChildElement(node: ts.FunctionDeclaration | ts.FunctionExpression | ts.VariableStatement) {
+    let hasJSX = false;
+    ts.forEachChild(node, function visitor(child){
+      if (isNodeJSX(child)) {
+        hasJSX = true;
+      }
+      if(child.getChildren()){
+        ts.forEachChild(child, visitor);
+      }
+    });
+    return hasJSX;
+  }
+  function startsWithCapitalOrNoName(name: ts.__String | string) {
+    if(!name) return true;
+    return !!name.match(/^[A-Z]{1}/);
+  }
   function classWalker(node: ts.ClassDeclaration) {
     const klass: ParsedClass = {
       name: node.name && node.name.escapedText as any,
       methods: [],
       isDefaultExport: hasDefaultModifier(node),
     };
+    if(startsWithCapitalOrNoName(klass.name) && hasReactInheritance(node)){
+      const currComp: ParsedReactComponent = {
+        name: klass.name,
+        isFunctional: false,
+        isDefaultExport: hasDefaultModifier(node),
+        props: [],
+      }
+      hasExportModifier(node) ? result.exportComponents.push(currComp): result.components.push(currComp);
+      return;
+    }
     ts.forEachChild(node, (child) => {
       if (child.kind === ts.SyntaxKind.MethodDeclaration){
         const methodChild = child as ts.MethodDeclaration;
@@ -95,6 +155,17 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
       isAsync: hasAsyncModifier(node),
       isDefaultExport: hasDefaultModifier(node)
     };
+    debug('function: ', parsedFunction.name, 'isJsx', hasJSXChildElement(node))
+    if(startsWithCapitalOrNoName(parsedFunction.name) && hasJSXChildElement(node)){
+      const currComp: ParsedReactComponent = {
+        name: parsedFunction.name,
+        isFunctional: true,
+        isDefaultExport: parsedFunction.isDefaultExport,
+        props: [],
+      }
+      hasExportModifier(node) ? result.exportComponents.push(currComp): result.components.push(currComp);
+      return;
+    }
     if(hasExportModifier(node)){
       result.exportFunctions.push(parsedFunction);
     } else {
@@ -115,7 +186,17 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
             isAsync: hasAsyncModifier(varChild.initializer as ts.FunctionExpression),
             isDefaultExport: hasDefaultModifier(varChild.initializer as ts.FunctionExpression),
           };
-          if(hasExportModifier(node)) {
+          if(startsWithCapitalOrNoName(parsedFunction.name) && hasJSXChildElement(node)){
+            const currComp: ParsedReactComponent = {
+              name: parsedFunction.name,
+              isFunctional: true,
+              isDefaultExport: parsedFunction.isDefaultExport,
+              props: [],
+            }
+            hasExportModifier(node) ? result.exportComponents.push(currComp): result.components.push(currComp);
+            return;
+          }
+          if (hasExportModifier(node)) {
             result.exportFunctions.push(parsedFunction);
           } else {
             result.functions.push(parsedFunction);
@@ -184,6 +265,10 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
       if(foundPojoByIdentifier){
         result.exportPojos.push(foundPojoByIdentifier);
       }
+      const foundComponentByIdentifier = result.components.find(component => component.name === idName);
+      if(foundComponentByIdentifier){
+        result.exportComponents.push(foundComponentByIdentifier);
+      }
     });
   }
 
@@ -210,5 +295,41 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
           isDefaultExport: true,
         })
       }
+    const foundComponentByIdentifier = result.components.find(component => component.name === idName);
+    if(foundComponentByIdentifier){
+      result.exportComponents.push({
+        ...foundComponentByIdentifier,
+        isDefaultExport: true
+      });
+    }
+  }
+  function expressionStatementWalker(node: ts.ExpressionStatement) {
+    //look for binary expressions 
+    if(node.expression?.kind  === ts.SyntaxKind.BinaryExpression){
+      const binaryExpression = node.expression as ts.BinaryExpression;
+      const leftExp = binaryExpression.left as ts.PropertyAccessExpression;
+      const rightExp = binaryExpression.right as ts.ObjectLiteralExpression;
+      const findMatchingComponent = (idName: ts.__String) => { 
+        return result.exportComponents.find(component => component.name === idName) ||
+          result.components.find(component => component.name === idName);
+      }
+      if (leftExp.name.escapedText === 'propTypes'){
+        const expText = (leftExp.expression as ts.Identifier)?.escapedText;
+        const currComponent = findMatchingComponent(expText);
+        if(currComponent){
+          currComponent.props = parseReactPropTypesFromLiteral(rightExp);
+        }
+      }
+    }
+  }
+  function parseReactPropTypesFromLiteral(literalObj: ts.ObjectLiteralExpression) : ParsedReactProp[] {
+    return (literalObj.properties as ts.NodeArray<ts.PropertyAssignment>).filter(prop => prop.name).map((prop: ts.PropertyAssignment) => {
+      const fullPropText = prop.initializer.getFullText().replace(/\n/ ,'');
+      return { 
+        name: (prop.name as ts.Identifier)?.escapedText,
+        type: fullPropText,
+        isOptional: fullPropText.indexOf('isRequired') === -1
+      }
+    });
   }
 }

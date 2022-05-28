@@ -1,7 +1,7 @@
 const template = require('lodash/template');
 const trimEnd = require('lodash/trimEnd');
 
-import { ParsedSourceFile, ParsedImport } from './model';
+import { ParsedSourceFile, ParsedImport, ParsedSourceObject } from './model';
 import { basename } from 'path';
 import { readFileSync } from 'fs';
 import debugFactory from 'debug';
@@ -22,6 +22,7 @@ export function generateUnitTest(path: string, _sourceCode: string, input: Parse
   let namedExportsList = [
     ...input.exportFunctions,
     ...input.exportPojos,
+    ...input.exportComponents,
   ];
   if(input.exportClass){
     namedExportsList.unshift(input.exportClass);
@@ -29,71 +30,44 @@ export function generateUnitTest(path: string, _sourceCode: string, input: Parse
   const namedExportsNameList = namedExportsList.filter(exp => !exp.isDefaultExport).map(exp => exp.name);
   const maybeDefaultExport = namedExportsList.find(exp => exp.isDefaultExport);
   if (maybeDefaultExport) {
-    maybeDefaultExport.name = maybeDefaultExport.name || basename(path).replace(/\.\w+/, '');
+    maybeDefaultExport.name = maybeDefaultExport.name || applyExportCapitalization(maybeDefaultExport,basename(path).replace(/\.\w+/, ''));
   }
+  const templateDataMap = {
+    namedExportsList: namedExportsNameList.join(', '),
+    defaultExport: maybeDefaultExport,
+    path: relativePath,
+    quoteSymbol,
+    allImports: input.imports,
+    parsedSource: input,
+    ...templateOptions,
+  };
   
   const testImports = template(
     readFileSync(`${templateDir}/imports.tpl`).toString()
-  )({
-    namedExportsList: namedExportsNameList.join(', '),
-    defaultExport: maybeDefaultExport,
-    path: relativePath,
-    quoteSymbol,
-    allImports: input.imports,
-    parsedSource: input,
-    ...templateOptions,
-  });
+  )(templateDataMap);
   const testMocks = template(
     readFileSync(`${templateDir}/mocksDefinition.tpl`).toString()
-  )({
-    namedExportsList: namedExportsNameList.join(', '),
-    defaultExport: maybeDefaultExport,
-    path: relativePath,
-    quoteSymbol,
-    allImports: input.imports,
-    parsedSource: input,
-    ...templateOptions,
-  })
+  )(templateDataMap)
   const testClass = template(
     readFileSync(`${templateDir}/classDescribe.tpl`).toString()
-  )({
-    namedExportsList: namedExportsNameList.join(', '),
-    defaultExport: maybeDefaultExport,
-    path: relativePath,
-    quoteSymbol,
-    allImports: input.imports,
-    parsedSource: input,
-    ...templateOptions,
-  });
+  )(templateDataMap);
   const testFunctions = template(
     readFileSync(`${templateDir}/functionsDescribe.tpl`).toString()
-  )({
-    namedExportsList: namedExportsNameList.join(', '),
-    defaultExport: maybeDefaultExport,
-    path: relativePath,
-    quoteSymbol,
-    allImports: input.imports,
-    parsedSource: input,
-    ...templateOptions,
-  })
+  )(templateDataMap)
   const testPojos = template(
     readFileSync(`${templateDir}/pojosDescribe.tpl`).toString()
-  )({
-    namedExportsList: namedExportsNameList.join(', '),
-    defaultExport: maybeDefaultExport,
-    path: relativePath,
-    quoteSymbol,
-    allImports: input.imports,
-    parsedSource: input,
-    ...templateOptions,
-  })
+  )(templateDataMap)
+  const testComponents = template(
+    readFileSync(`${templateDir}/componentsDescribe.tpl`).toString()
+  )(templateDataMap);
   return trimEnd([
     testImports,
     testMocks,
     testClass,
+    testComponents,
     testFunctions,
     testPojos,
-  ].filter(hasOutput => hasOutput).join('\r\n'), 
+  ].filter(hasOutput => hasOutput.replace(/(\r|\n)/g,'')).join('\r\n'), 
   '\r\n');
 }
 
@@ -106,4 +80,12 @@ function determinateUsedQuote(imports: ParsedImport[]): string {
   }
 
   return '\'';
+}
+
+function applyExportCapitalization(parsedObject: ParsedSourceObject, exportName: string) : string {
+  if('isFunctional' in parsedObject || 'methods' in  parsedObject){
+    const firstLetter = exportName[0];
+    return `${firstLetter.toUpperCase()}${exportName.slice(1)}`;
+  }
+  return exportName;
 }
