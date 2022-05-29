@@ -7,9 +7,9 @@
     ],
     "compileOnSave": false,
     "compilerOptions": {
-        "resolveJsonModule": true,
         "typeRoots": [ "./node_modules/@types/" ],
         "outDir": "lib",
+        "rootDir": "./src",
         "noImplicitAny": true,
         "noImplicitReturns": true,
         "experimentalDecorators": true,

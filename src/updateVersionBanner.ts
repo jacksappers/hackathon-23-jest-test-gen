@@ -1,9 +1,10 @@
 import latestVersion from 'latest-version';
-import {version} from '../package.json';
+import { readFileSync } from 'fs';
 
 export default async function checkVersionAndShowUpdateBanner() {
   try {
     const remoteVersion = await latestVersion('jest-test-gen');
+    const version = JSON.parse(readFileSync('../package.json', 'utf-8')).version;
     if ( remoteVersion > version){
       console.warn('🎉 A new version of the cli is available! TO UPDATE: npm install -g jest-test-gen 🎉')
     }
