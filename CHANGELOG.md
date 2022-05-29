@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.0.10
+## v1.0.0
 
 - Adds support for parsing React class + functional components to generate snapshot test
 
