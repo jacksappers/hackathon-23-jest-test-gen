@@ -6,7 +6,7 @@ import { CallTimer } from './classComponent';
 jest.mock('react-redux');
 
 const renderTree = tree => renderer.create(tree);
-describe('<CallTimer>', () => { 
+describe('<CallTimer>', () => {
   it('should render component', () => {
     expect(renderTree(<CallTimer  
       magicNumber={/*  PropTypes.number.isRequired */} 

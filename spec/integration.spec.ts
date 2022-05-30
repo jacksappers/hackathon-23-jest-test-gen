@@ -81,7 +81,7 @@ describe('integration', () => {
       expected: 'spec/fixtures/pojos/namedExportAssignement.expected.test.js'
     });
   });
-  describe(`function named export identifier`, () => {
+  describe(`pojo named export identifier`, () => {
     createSpec({
       file: 'spec/fixtures/pojos/namedExportIdentifier.js',
       spec: 'spec/fixtures/pojos/namedExportIdentifier.generated.test.js',
@@ -109,6 +109,13 @@ describe('integration', () => {
       expected: 'spec/fixtures/components/functionalDefaultExportComponent.expected.test.js'
     });
   });
+  describe(`component functional - anonymous default export`, () => {
+    createSpec({
+      file: 'spec/fixtures/components/unnamedDefaultComponent.js',
+      spec: 'spec/fixtures/components/unnamedDefaultComponent.generated.test.js',
+      expected: 'spec/fixtures/components/unnamedDefaultComponent.expected.test.js'
+    });
+  });
   describe(`component functional - named export`, () => {
     createSpec({
       file: 'spec/fixtures/components/functionalNamedComponent.js',
@@ -116,18 +123,11 @@ describe('integration', () => {
       expected: 'spec/fixtures/components/functionalNamedComponent.expected.test.js'
     });
   });
-  describe(`components multiple- named export`, () => {
+  describe(`components multiple - named export`, () => {
     createSpec({
       file: 'spec/fixtures/components/multipleComponent.js',
       spec: 'spec/fixtures/components/multipleComponent.generated.test.js',
       expected: 'spec/fixtures/components/multipleComponent.expected.test.js'
-    });
-  });
-  describe(`component functional - anonymous default export`, () => {
-    createSpec({
-      file: 'spec/fixtures/components/unnamedDefaultComponent.js',
-      spec: 'spec/fixtures/components/unnamedDefaultComponent.generated.test.js',
-      expected: 'spec/fixtures/components/unnamedDefaultComponent.expected.test.js'
     });
   });
 });
@@ -156,8 +156,11 @@ function createSpec(input: {
     // compare lines
     while (content.length || expected.length) {
       line++;
-      const prefix = `line(${line})`; // line number
-      expect(prefix + content.shift()).toEqual(prefix + expected.shift());
+      const prefix = `line(${line}): `; // line number
+      const contentLine = content.shift();
+      const expectedLine = expected.shift();
+      expect(prefix + contentLine ).toEqual(prefix + expectedLine);
+      if (contentLine !==  expectedLine) break;
     }
   });
 }

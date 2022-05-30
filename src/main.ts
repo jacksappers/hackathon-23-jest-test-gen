@@ -15,7 +15,6 @@ export function run(params: string[]) {
     require(params[1]);
     params = params.slice(2);
   }
-
   const inputPath = params[0];
   const inputFilenameNoExt = path.basename(inputPath, path.extname(inputPath));
   const specFileName = path.join(path.dirname(inputPath),`${inputFilenameNoExt}.generated.test.js`);
