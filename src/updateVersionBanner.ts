@@ -9,7 +9,7 @@ export default async function checkVersionAndShowUpdateBanner() {
     if ( compare(remoteVersion, version, '>') ){
       console.warn('🎉 A new version of the cli is available! TO UPDATE: npm install -g jest-test-gen 🎉')
     }
-  } catch(err){
-    console.warn(err,'check for updates failed :( Please check at https://www.npmjs.com/package/jest-test-gen')
+  } catch(err) {
+    console.warn('check for updates failed :( Please check at https://www.npmjs.com/package/jest-test-gen')
   }
 }
