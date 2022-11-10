@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.0
+
+- #6 add an option `--fileSuffix` to specify a custom generated file name suffix Thanks @eliorivero
+
 ## v1.3.2
 
 - return test output filename from `run()` function
