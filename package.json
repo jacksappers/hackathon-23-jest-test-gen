@@ -1,6 +1,6 @@
 {
   "name": "jest-test-gen",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Generator of jest unit test with all imports mocked and tests stub for every class and function exported",
   "keywords": [
     "jest",
@@ -21,7 +21,7 @@
     "build": "tsc",
     "dev": "ts-node ./src/cli.ts",
     "test": "jest",
-    "prepublish": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",

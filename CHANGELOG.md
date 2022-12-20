@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.4.1
+## v1.4.2
 
 - #14 fix non arrow function assignement expression parsing Thanks @yiminghe
 
