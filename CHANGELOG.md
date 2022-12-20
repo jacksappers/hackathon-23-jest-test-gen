@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.1
+
+- #14 fix non arrow function assignement expression parsing Thanks @yiminghe
+
 ## v1.4.0
 
 - #6 add an option `--fileSuffix` to specify a custom generated file name suffix Thanks @eliorivero
