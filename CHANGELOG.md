@@ -2,6 +2,11 @@
 
 ## v1.4.2
 
+- #15 add support for `export as` syntax 
+Thanks @yiminghe
+
+## v1.4.2
+
 - #14 fix non arrow function assignement expression parsing Thanks @yiminghe
 
 ## v1.4.0

@@ -1,6 +1,6 @@
 {
   "name": "jest-test-gen",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "Generator of jest unit test with all imports mocked and tests stub for every class and function exported",
   "keywords": [
     "jest",
