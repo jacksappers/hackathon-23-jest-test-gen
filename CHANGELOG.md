@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.4.2
+## v1.4.3
 
 - #15 add support for `export as` syntax 
 Thanks @yiminghe
