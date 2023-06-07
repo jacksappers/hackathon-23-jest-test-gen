@@ -4,14 +4,14 @@ import * as os from 'os';
 import * as ts from 'typescript';
 import { parseSourceFile } from './parse-source-file';
 import { generateUnitTest } from './generate-unit-test';
-import * as minimist from 'minimist';
+import pathArgs from './constants/pathArgs';
 
 type TRunOptions = {
   returnOutput?: boolean
 }
 
-export function run(args: minimist.ParsedArgs, opts?: TRunOptions) {
-  if (!args._.length) {
+export function run(opts?: TRunOptions) {
+  if (!pathArgs.inputPath) {
     // tslint:disable-next-line:no-console
     console.error('missing path argument');
     console.error('USAGE: jest-test-gen <path-to-file> --outputDir ./my/custom/output --fileSuffix .generated.test')
@@ -23,18 +23,18 @@ export function run(args: minimist.ParsedArgs, opts?: TRunOptions) {
   const inputFilenameNoExt = path.basename(inputPath, inputFileExtension);
 
   let finalOutputDir = path.dirname(inputPath);
-  if (args.outputDir) {
+  if (pathArgs.outputDir) {
     const homeDir = os.homedir();
-    const resolvedConfigOutputDir = args.outputDir.replace(/^~(?=$|\/|\\)/, homeDir);
+    const resolvedConfigOutputDir = pathArgs.outputDir.replace(/^~(?=$|\/|\\)/, homeDir);
     if (path.isAbsolute(resolvedConfigOutputDir)){
       finalOutputDir = resolvedConfigOutputDir;
     } else {
-      finalOutputDir = path.resolve(finalOutputDir, args.outputDir);
+      finalOutputDir = path.resolve(finalOutputDir, pathArgs.outputDir);
     }
   }
   let fileSuffix = '.generated.test';
-  if (args.fileSuffix) {
-    fileSuffix = args.fileSuffix;
+  if (pathArgs.fileSuffix) {
+    fileSuffix = pathArgs.fileSuffix;
   }
   const specFileName = path.join(finalOutputDir,`${inputFilenameNoExt}${fileSuffix}${inputFileExtension}`);
 
