@@ -11,6 +11,12 @@ type TRunOptions = {
 }
 
 export function run(opts?: TRunOptions) {
+  const { 
+    fileSuffix,
+    inputPath,
+    outputDir
+  } = pathArgs;
+
   if (!pathArgs.inputPath) {
     // tslint:disable-next-line:no-console
     console.error('missing path argument');
@@ -18,23 +24,18 @@ export function run(opts?: TRunOptions) {
     process.exit(1);
   }
 
-  const inputPath = args._[0];
   const inputFileExtension = path.extname(inputPath);
   const inputFilenameNoExt = path.basename(inputPath, inputFileExtension);
 
   let finalOutputDir = path.dirname(inputPath);
-  if (pathArgs.outputDir) {
+  if (outputDir) {
     const homeDir = os.homedir();
-    const resolvedConfigOutputDir = pathArgs.outputDir.replace(/^~(?=$|\/|\\)/, homeDir);
+    const resolvedConfigOutputDir = outputDir.replace(/^~(?=$|\/|\\)/, homeDir);
     if (path.isAbsolute(resolvedConfigOutputDir)){
       finalOutputDir = resolvedConfigOutputDir;
     } else {
-      finalOutputDir = path.resolve(finalOutputDir, pathArgs.outputDir);
+      finalOutputDir = path.resolve(finalOutputDir, outputDir);
     }
-  }
-  let fileSuffix = '.generated.test';
-  if (pathArgs.fileSuffix) {
-    fileSuffix = pathArgs.fileSuffix;
   }
   const specFileName = path.join(finalOutputDir,`${inputFilenameNoExt}${fileSuffix}${inputFileExtension}`);
 

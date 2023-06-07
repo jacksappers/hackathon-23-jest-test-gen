@@ -1,6 +1,6 @@
 const pathArgs = {
   inputPath: '',
-  fileSuffix: '',
+  fileSuffix: '.generated.test',
   outputDir: '',
 }
 
