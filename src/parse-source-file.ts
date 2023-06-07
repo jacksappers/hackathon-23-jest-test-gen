@@ -131,7 +131,8 @@ export function parseSourceFile(file: ts.SourceFile): ParsedSourceFile {
       const typeNode = (varChild.type as ts.TypeReferenceNode);
       if(['FunctionComponent','React.FunctionComponent','FC','React.FC'].includes(typeNode.typeName.getText())) {
         const tsPropType = typeNode.typeArguments?.[0] as ts.TypeReferenceNode
-        if(tsPropType){
+        // TODO: tsPropType.typeName does not exist when using a format using curly braces like React.FC<{ someProp: string}>
+        if(tsPropType && tsPropType.typeName){
           const tsPropTypeName = tsPropType.typeName.getText();
           const maybeMatchingTypeDef = findMatchigTypeByName(tsPropTypeName as ts.__String);
           if(maybeMatchingTypeDef){
