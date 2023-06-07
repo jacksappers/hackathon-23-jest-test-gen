@@ -1,5 +1,6 @@
 node_modules
 lib/
+src/constants/pathArgs.ts
 jasmine-unit-test-generator-*.tgz
 .npmrc
 .DS_Store
